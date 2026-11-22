@@ -1,0 +1,15 @@
+# C20 v4: start from padavan-ng's own TL_C20-V4 template, apply the same feature choices as the C5 v4 build.
+T=padavan-ng/trunk/configs/templates/tplink/tl_c20-v4.config
+[[ -f $T ]] || { echo "template $T not found"; exit 1; }
+cp "$T" build.config
+sed -i 's|\r$||' build.config
+ON="ENABLE_IPV6 ENABLE_USB ENABLE_EXT4 ENABLE_EXFAT ENABLE_SWAP INCLUDE_SHORTCUT_FE INCLUDE_IPSET INCLUDE_QOS INCLUDE_DROPBEAR INCLUDE_DROPBEAR_FAST_CODE INCLUDE_WIREGUARD INCLUDE_AMNEZIAWG INCLUDE_NFQWS INCLUDE_ZRAM INCLUDE_IPERF3 INCLUDE_CURL INCLUDE_TCPDUMP INCLUDE_SFTP INCLUDE_HTTPS INCLUDE_STUBBY"
+OFF="ENABLE_FUSE ENABLE_FAT INCLUDE_LANG_RU INCLUDE_NTFS_3G INCLUDE_LPRD INCLUDE_U2EC INCLUDE_HDPARM INCLUDE_SMBD INCLUDE_FTPD INCLUDE_FTPD_SSL INCLUDE_EAP_PEAP INCLUDE_DDNS_SSL INCLUDE_OPENVPN INCLUDE_OPENSSL_EC INCLUDE_OPENSSL_EXE INCLUDE_XUPNPD INCLUDE_XFRM INCLUDE_MINIDLNA INCLUDE_TRANSMISSION INCLUDE_ARIA INCLUDE_TOR INCLUDE_PRIVOXY INCLUDE_DNSCRYPT INCLUDE_DOH"
+for k in $ON; do
+  if grep -qE "^#?CONFIG_FIRMWARE_${k}=y" build.config; then sed -i -E "s/^#?CONFIG_FIRMWARE_${k}=y\$/CONFIG_FIRMWARE_${k}=y/" build.config
+  else echo "CONFIG_FIRMWARE_${k}=y" >> build.config; fi
+done
+for k in $OFF; do sed -i -E "s/^CONFIG_FIRMWARE_${k}=y\$/#CONFIG_FIRMWARE_${k}=y/" build.config; done
+sed -i -E 's/^#?CONFIG_CC_OPTIMIZE_FOR_SIZE=y$/CONFIG_CC_OPTIMIZE_FOR_SIZE=y/' build.config
+grep -q '^CONFIG_CC_OPTIMIZE_FOR_SIZE=y' build.config || echo 'CONFIG_CC_OPTIMIZE_FOR_SIZE=y' >> build.config
+echo "===== final build.config (enabled lines) ====="; grep -E '^CONFIG_' build.config
